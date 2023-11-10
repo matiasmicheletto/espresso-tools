@@ -1,4 +1,4 @@
-use <threads.scad>
+use <lib/threads.scad>
 $fn = 100;
 
 // Top part (handle)
