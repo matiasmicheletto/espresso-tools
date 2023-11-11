@@ -13,13 +13,11 @@ Hb = 20; // Bottom section heigth
 Wc = 30; // Center width
 
 // Top hole
-Rt = Wc/2; // Cylinder radius
-a = 102; // Cylinder inclination
+a = 100; // Cylinder inclination
+Rt = Wc/2-2; // Cylinder radius
 Rs = Rt*1.5; // Sphere radius
 
-// Bottom hole
-Rb = Rt*1.2;
-e = W/2-Rb; 
+// Foot
 Hf = 10; // Foot height
 
 
@@ -35,28 +33,6 @@ module top_envelope() {
         [W/2,Lt/2,0],
         [W/2,Lt/2,Ht],
         [-W/2,Lt/2,Ht]
-    ];
-    faces = [
-        [0,1,2,3],
-        [0,4,7,1],
-        [0,3,5,4],
-        [3,2,6,5],
-        [4,5,6,7],
-        [1,7,6,2]
-    ];
-    polyhedron(points=points, faces=faces);
-}
-
-module bottom_envelope() {
-    points = [
-        [-Wc/2,-Lb/2,0], 
-        [-Wc/2,-Lb/2,Hc],
-        [Wc/2,-Lb/2,Hc],
-        [Wc/2,-Lb/2,0],
-        [-W/2,Lb/2,0],
-        [W/2,Lb/2,0],
-        [W/2,Lb/2,Hb],
-        [-W/2,Lb/2,Hb]
     ];
     faces = [
         [0,1,2,3],
@@ -86,29 +62,47 @@ module top_section() {
     }
 }
 
+module bottom_envelope() {
+    points = [
+        [-Wc/2,-Lb/2,0], 
+        [-Wc/2,-Lb/2,Hc],
+        [Wc/2,-Lb/2,Hc],
+        [Wc/2,-Lb/2,0],
+        [-W/2,Lb/2,0],
+        [W/2,Lb/2,0],
+        [W/2,Lb/2,Hb],
+        [-W/2,Lb/2,Hb]
+    ];
+    faces = [
+        [0,1,2,3],
+        [0,4,7,1],
+        [0,3,5,4],
+        [3,2,6,5],
+        [4,5,6,7],
+        [1,7,6,2]
+    ];
+    polyhedron(points=points, faces=faces);
+}
+
 module bottom_section() {    
     difference() {
-        bottom_envelope();
-        
-        translate([0,0,Rb+2])
-        rotate([90,0,0])
-            cylinder(r = Rb, h = Lb, center = true);
+        union() {
+            bottom_envelope();
+            
+            hh = W*0.3;
+            translate([0,Lb/2+Hf/2,hh])
+                cube([W, Hf, 2*hh], center = true);
+            
+            translate([0,Lb/2+Hf/2,W*0.65])
+            rotate([90, 0, 0])
+                cylinder(r = W/2*1.1, h = Hf, center = true);
+        }
+        translate([0,0, W*0.65])
+            rotate([90,Hf/2,0])
+            cylinder(r = W/2, h = Lb + Hf/2, center=true);
     }
 }
 
-module foot() {
-    difference() {
-        union() {
-            cylinder(r = W*0.55, h = Hf);
-            translate([0,W/4+10,Hf/2])
-                cube([W, W*0.8, Hf], center = true);
-        }
-        
-        translate([0,Rb/2-e/2,(Hf+e)/2])
-            cylinder(r = Rb, h = Hf-e+1, center = true);
-        
-    }
-}
 
 module holder() {
     union() {
@@ -118,13 +112,7 @@ module holder() {
         translate([0,0,-Lb/2])
         rotate([90,180,0])
             bottom_section();
-        
-        translate([0,-W*0.8-2.5,-Lb-Hf])
-            foot();
     }
 }
 
 holder();
-
-
-
