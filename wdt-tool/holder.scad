@@ -1,24 +1,27 @@
 $fn = 100;
 
-// Top envelope dimensions
-Lt = 100; // Top section length
-Ht = 50; // Top section height
-W = 50; // Top and bottom width
+Lt = 60; // Top section length
+Lb = 60; // Bottom section length
 
-Hc = 10; // Center section height
+Ht = 40; // Top section height
+Hc = 8; // Center section height
+Hb = 16; // Bottom section heigth
+Hf = 29; // Foot height (square section)
 
-d = 10; // Top displacement
-Lb = 95; // Bottom section length
-Hb = 20; // Bottom section heigth
+Wt = 40; // Top width
 Wc = 30; // Center width
+Wb = 50; // Bottom width
 
 // Top hole
-a = 100; // Cylinder inclination
-Rt = Wc/2-2; // Cylinder radius
-Rs = Rt*1.5; // Sphere radius
+Rt = 14; // Cylinder radius
+Lr = 65; // Cylinder length
+a = asin(1.5*Rt/Lr); // Cylinder inclination
+Rs = Rt*1.6; // Sphere radius
 
 // Foot
-Hf = 10; // Foot height
+ef = 10; // Foot height
+Rf = 26.5; // Foot radius
+df = 2; // Foot border
 
 
 module top_envelope() {
@@ -29,10 +32,10 @@ module top_envelope() {
         [Wc/2,-Lt/2,Hc],
         [Wc/2,-Lt/2,0],
         // Top face
-        [-W/2,Lt/2,0],
-        [W/2,Lt/2,0],
-        [W/2,Lt/2,Ht],
-        [-W/2,Lt/2,Ht]
+        [-Wt/2,Lt/2,0],
+        [Wt/2,Lt/2,0],
+        [Wt/2,Lt/2,Ht],
+        [-Wt/2,Lt/2,Ht]
     ];
     faces = [
         [0,1,2,3],
@@ -49,15 +52,15 @@ module top_section() {
     difference() {
         top_envelope();
         
-        translate([0,0,.55*Ht])
-        rotate([a,0,0])
-            cylinder(r = Rt, h = Lt*1.1, center = true);
+        translate([0,0,Ht*0.65])
+        rotate([a-90,0,0])
+            cylinder(r = Rt, h = Lt*1.3, center = true);
+
+        translate([0,0,Ht*0.8])
+        rotate([a-90,0,0])
+            cube([2*Rt, Rt, Lt*1.3], center = true);
         
-        translate([0,0,.55*Ht+Rt/2])
-        rotate([a,0,0])
-            cube([2*Rt, Rt, Lt*1.1], center = true);
-        
-        translate([0, Lt/2+15, .55*Ht + Rt/2])
+        translate([0, Lt/2+15, Ht*0.65 + Rt/2])
             sphere(r = Rs);
     }
 }
@@ -68,10 +71,10 @@ module bottom_envelope() {
         [-Wc/2,-Lb/2,Hc],
         [Wc/2,-Lb/2,Hc],
         [Wc/2,-Lb/2,0],
-        [-W/2,Lb/2,0],
-        [W/2,Lb/2,0],
-        [W/2,Lb/2,Hb],
-        [-W/2,Lb/2,Hb]
+        [-Wb/2,Lb/2,0],
+        [Wb/2,Lb/2,0],
+        [Wb/2,Lb/2,Hb],
+        [-Wb/2,Lb/2,Hb]
     ];
     faces = [
         [0,1,2,3],
@@ -89,17 +92,24 @@ module bottom_section() {
         union() {
             bottom_envelope();
             
-            hh = W*0.3;
-            translate([0,Lb/2+Hf/2,hh])
-                cube([W, Hf, 2*hh], center = true);
-            
-            translate([0,Lb/2+Hf/2,W*0.65])
+            // Foot
+            translate([0,Lb/2+ef/2,Hf/2])
+                cube([Wb, ef, Hf], center = true);
+            translate([0,(Lb+ef)/2,Hf])
             rotate([90, 0, 0])
-                cylinder(r = W/2*1.1, h = Hf, center = true);
+                cylinder(r = Rf, h = ef, center = true);
         }
-        translate([0,0, W*0.65])
-            rotate([90,Hf/2,0])
-            cylinder(r = W/2, h = Lb + Hf/2, center=true);
+        
+        // Hollow
+        translate([0, ef/4, Hf])
+            rotate([90, 0, 0])
+            cylinder(r = Rf-df, h = Lb+ef/2, center = true);
+        
+        // Adaption top to bottom
+        hh = 30; dd = 1;
+        translate([0, hh/2-Lb/2-3.5, Hf/2+2])
+            rotate([95, 0, 0])
+            cylinder(r1 = Rt-dd, r2 = Rt+0.5, h = hh, center = true);
     }
 }
 
@@ -114,5 +124,16 @@ module holder() {
             bottom_section();
     }
 }
+
+/*
+module presentation() {
+    translate([60, 0, 0]) {
+        top_section();
+        translate([60,0,0])
+            bottom_section();
+    }
+}
+presentation();
+*/
 
 holder();
